@@ -32,7 +32,7 @@ while True:
     rgb_small_frame = small_frame[:, :, ::-1]
     if process_this_frame:
         #Oncherche ou sont les visages
-        face_locations = face_recognition.face_locations( rgb_small_frame)
+        face_locations = face_recognition.face_locations( rgb_small_frame,3,"hog")
         face_encodings = face_recognition.face_encodings( rgb_small_frame, face_locations)
         
         face_names = []
@@ -51,19 +51,12 @@ while True:
             
             face_names.append(name)
     process_this_frame = not process_this_frame
-        
-    
-    # Display the results
+        # Display the results
     for (top, right, bottom, left), name in zip(face_locations, face_names):
         top *= 4
         right *= 4
         bottom *= 4
         left *= 4
-        # Draw a rectangle around the face
-        cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
-        # Input text label with a name below the face
-        cv2.rectangle(frame, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
-        font = cv2.FONT_HERSHEY_DUPLEX
         if("mich" in name):
             name="michael"
         elif("jerry" in name):
@@ -83,12 +76,47 @@ while True:
         else:
             name="error"
             
-        
-        cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
-       
+        if(name=="error"):
+            frame_temp=frame.copy()
+            actual_frame=frame.copy()
+            print("top "+str(top)+"left "+str(left) + "right "+str(right) +"bottom "+ str(bottom)+"taille image "+str(actual_frame))
+            cropped_pic=frame_temp[top-right:top+right,left-bottom:left+bottom]
+            # Draw a rectangle around the face
+            cv2.rectangle(frame_temp, (left, top), (right, bottom), (0, 255, 0), 2)
+            # Input text label with a name below the face
+            cv2.rectangle(frame_temp, (left, bottom - 35), (right, bottom), (0, 255, 0), cv2.FILLED)
+            font = cv2.FONT_HERSHEY_DUPLEX
+            cv2.putText(frame_temp, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
+            validation = False
+            print("Press y to save this picture or any other letter to continue")
+            while(validation ==False ):
+                cv2.imshow('img1',frame_temp) #display the captured image
+
+
+                if cv2.waitKey(1) & 0xFF == ord('y'): #save on pressing 'y' 
+                    cv2.imwrite('ERROR.png',cropped_pic)
+                    cv2.imshow('machin_cropped', cropped_pic)
+                    validation = True
+                    cv2.destroyWindow('img1')
     
-   # Display the resulting image
-    cv2.imshow('Video', frame)
+                elif cv2.waitKey(1) & 0xFF == ord('n'):
+                    validation =True
+                    cv2.destroyWindow('img1')
+                else:
+                    validation= False
+        else:
+            
+            cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
+            # Input text label with a name below the face
+            cv2.rectangle(frame, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
+            font = cv2.FONT_HERSHEY_DUPLEX
+            cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
+            validation = False
+
+        
+    
+       # Display the resulting image
+        cv2.imshow('Video', frame)
     # Hit 'q' on the keyboard to quit!
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
